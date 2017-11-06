@@ -5,6 +5,7 @@
 #
 
 NOTIFY_LIST="${USER}@integralads.com"
+PROCESS_BASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd | rev | cut -d'/' -f2- | rev )
 
 function print_usage {
     cat - <<-EOU
@@ -23,7 +24,7 @@ function print_usage {
                 this will re-create todo files to use /user/$USER/event and /user/$USER/dt/raw
             -f  copy the full day (overrides -h)
             -o  overwrite existing, by default the script will check if the data exist before copying
-        -r  when downloading data (including referntial) use this namenode URI as source
+        -r  when downloading data (including referential) use this namenode URI as source
 EOU
 }
 
@@ -101,6 +102,8 @@ DATEPATH=$(date --date "$DATE" '+%Y/%m/%d')
 PREVDATEPATH=$(date --date "$PREVDATE" '+%Y/%m/%d')
 NEXTDATEPATH=$(date --date "$NEXTDATE" '+%Y/%m/%d')
 
+YESTERDAYPATH=$(date --date "-1 day" '+%Y/%m/%d')
+
 DATESTAMP=$(date --date "$DATE" '+%Y%m%d')
 PREVDATESTAMP=$(date --date "$PREVDATE" '+%Y%m%d')
 NEXTDATESTAMP=$(date --date "$NEXTDATE" '+%Y%m%d')
@@ -110,6 +113,16 @@ DATESTAMP_PLUS_1_HOUR=$( date --date "$DATE_TIME + 1 hour" '+%Y%m%d%H%M')
 
 DISTCP_CMD="hadoop distcp -D mapreduce.map.memory.mb=2024 -log /tmp/$0.distcp.${RANDOM}.log -m 600"
 [[ "${OVERWRITE}" == "true" ]] && DISTCP_CMD+=" -overwrite "
+
+echo "Verify that ~/sitelet_scoring/conf/dev/invisible.txt can be found"
+INVISIBLE_FILE="sitelet_scoring/conf/dev/invisible.txt"
+if [[ ! -f ~/${INVISIBLE_FILE} ]] && [[ -f ${PROCESS_BASEDIR}/${INVISIBLE_FILE} ]]; then
+    ln -s ${PROCESS_BASEDIR}/sitelet_scoring ~/sitelet_scoring 
+elif [[ ! -f ~/${INVISIBLE_FILE} ]]; then
+    echo "Could not locate invisible.txt"
+    exit 1
+fi
+echo "Confirmed: $(ls -l ~/${INVISIBLE_FILE})"
 
 echo "Verify that the EventAgg.base.conf is present"
 if [[ -d ~/process_fw_logs ]]; then
@@ -158,11 +171,13 @@ hdfs dfs -test -e quality/evidence/site_placement/part-r-00000.gz \
 
 # get the FRAUD EVIDENCE data
 echo "Refreshing quality/evidence/fraud/${PREVDATEPATH}"
-hdfs dfs -mkdir -p quality/evidence/fraud/${PREVDATEPATH} quality/evidence/fraud/${DATEPATH}
+hdfs dfs -mkdir -p quality/evidence/fraud/${PREVDATEPATH} quality/evidence/fraud/${DATEPATH} quality/evidence/fraud/${YESTERDAYPATH}
 hdfs dfs -test -e quality/evidence/fraud/${PREVDATEPATH}/* \
     || hdfs dfs -cp -f ${SRC_DATA_HOST}/user/thresher/quality/evidence/fraud/${PREVDATEPATH}/* quality/evidence/fraud/${PREVDATEPATH}
 hdfs dfs -test -e quality/evidence/fraud/${DATEPATH}/* \
     || hdfs dfs -cp -f ${SRC_DATA_HOST}/user/thresher/quality/evidence/fraud/${DATEPATH}/* quality/evidence/fraud/${DATEPATH}
+hdfs dfs -test -e quality/evidence/fraud/${YESTERDAYPATH}/* \
+    || hdfs dfs -cp -f ${SRC_DATA_HOST}/user/thresher/quality/evidence/fraud/${YESTERDAYPATH}/* quality/evidence/fraud/${YESTERDAYPATH}
 
 # get the INTENDED DURATION data
 echo "Refreshing video/intended_duration/${PREVDATEPATH} && video/intended_duration_cm/${PREVDATEPATH}"
