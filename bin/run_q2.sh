@@ -158,9 +158,11 @@ hdfs dfs -test -e quality/evidence/site_placement/part-r-00000.gz \
 
 # get the FRAUD EVIDENCE data
 echo "Refreshing quality/evidence/fraud/${PREVDATEPATH}"
-hdfs dfs -mkdir -p quality/evidence/fraud/${PREVDATEPATH}
+hdfs dfs -mkdir -p quality/evidence/fraud/${PREVDATEPATH} quality/evidence/fraud/${DATEPATH}
 hdfs dfs -test -e quality/evidence/fraud/${PREVDATEPATH}/* \
     || hdfs dfs -cp -f ${SRC_DATA_HOST}/user/thresher/quality/evidence/fraud/${PREVDATEPATH}/* quality/evidence/fraud/${PREVDATEPATH}
+hdfs dfs -test -e quality/evidence/fraud/${DATEPATH}/* \
+    || hdfs dfs -cp -f ${SRC_DATA_HOST}/user/thresher/quality/evidence/fraud/${DATEPATH}/* quality/evidence/fraud/${DATEPATH}
 
 # get the INTENDED DURATION data
 echo "Refreshing video/intended_duration/${PREVDATEPATH} && video/intended_duration_cm/${PREVDATEPATH}"

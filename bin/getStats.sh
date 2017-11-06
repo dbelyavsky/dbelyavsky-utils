@@ -25,6 +25,7 @@ function printOutputRecord {
 }
 
 # Print Header
+echo ""
 echo "Launch Time,url,JobType,Launched map tasks,Launched reduce tasks,GC time elapsed (ms),CPU time spent (ms)"
 
 FILTER_STRING=""
