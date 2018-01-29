@@ -114,24 +114,49 @@ DATESTAMP_PLUS_1_HOUR=$( date --date "$DATE_TIME + 1 hour" '+%Y%m%d%H%M')
 DISTCP_CMD="hadoop distcp -D mapreduce.map.memory.mb=2024 -log /tmp/$0.distcp.${RANDOM}.log -m 600"
 [[ "${OVERWRITE}" == "true" ]] && DISTCP_CMD+=" -overwrite "
 
-echo "Verify that ~/sitelet_scoring/conf/dev/invisible.txt can be found"
-INVISIBLE_FILE="sitelet_scoring/conf/dev/invisible.txt"
-if [[ ! -f ~/${INVISIBLE_FILE} ]] && [[ -f ${PROCESS_BASEDIR}/${INVISIBLE_FILE} ]]; then
-    ln -s ${PROCESS_BASEDIR}/sitelet_scoring ~/sitelet_scoring 
-elif [[ ! -f ~/${INVISIBLE_FILE} ]]; then
-    echo "Could not locate invisible.txt"
-    exit 1
+SITELET_SCORING="sitelet_scoring"
+INVISIBLE_FILE="${SITELET_SCORING}/conf/dev/invisible.txt"
+echo "Looking for ${INVISIBLE_FILE}"
+if [[ ! -f ~/${INVISIBLE_FILE} ]]; then
+    for dirName in \
+        "~/etlscripts/${SITELET_SCORING}" \
+        "~/src/etlscripts/${SITELET_SCORING}"
+    do
+        echo "Trying ${dirName}"
+        if [[ -d ${dirName} ]]; then
+            echo "Found! Creating a symlink"
+            ln -s ${dirName} ~/${SITELET_SCORING} 
+            break
+        fi
+    done
 fi
-echo "Confirmed: $(ls -l ~/${INVISIBLE_FILE})"
 
-echo "Verify that the EventAgg.base.conf is present"
-if [[ -d ~/process_fw_logs ]]; then
-    cp ~/process_fw_logs/conf/dev/EventAgg.base.conf ~/${QLOG}/conf/dev
-elif [[ -d ~/src/etlscripts/process_fw_logs ]]; then
-    cp ~/src/etlscripts/process_fw_logs/conf/dev/EventAgg.base.conf ~/${QLOG}/conf/dev
-elif [[ ! -f ~${QLOG}/conf/dev/EventAgg.base.conf ]]; then
-    echo "Could not locate process_fw_logs/conf/dev/EventAgg.base.conf and it isn't found in ~/${QLOG}/conf/dev"
-    echo "You're going to have a bad time.  Bye"
+if [[ -f ~/${INVISIBLE_FILE} ]]; then
+    echo "Confirmed: $(ls -l ~/${INVISIBLE_FILE})"
+else
+    echo "Could not locate ${INVISIBLE_FILE}"
+    echo "You're going to have a bad time."
+    echo "Bye"
+    exit 1 
+fi
+
+PROCESS_FW_LOGS="process_fw_logs"
+EVENT_AGG_CONF="${PROCESS_FW_LOGS}/conf/dev/EventAgg.base.conf"
+echo "Looking for ${EVENT_AGG_CONF}"
+for dirName in \
+    "~" \
+    "~/etlscripts" \
+    "~/src/etlscripts" \
+do
+    if [[ -f $dirName/${EVENT_AGG_CONF} ]]; then
+        cp $dirName/${EVENT_AGG_CONF} ~/${QLOG}/conf/dev
+    fi
+done
+
+if [[ ! -f ~${QLOG}/conf/dev/EventAgg.base.conf ]]; then
+    echo "Could not locate ${EVENT_AGG_CONF} and it isn't found in ~/${QLOG}/conf/dev"
+    echo "You're going to have a bad time."
+    echo "Bye"
     exit 1
 fi
 
