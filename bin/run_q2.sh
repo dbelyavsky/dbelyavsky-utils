@@ -146,14 +146,14 @@ echo "Looking for ${EVENT_AGG_CONF}"
 for dirName in \
     "~" \
     "~/etlscripts" \
-    "~/src/etlscripts" \
+    "~/src/etlscripts" 
 do
     if [[ -f $dirName/${EVENT_AGG_CONF} ]]; then
         cp $dirName/${EVENT_AGG_CONF} ~/${QLOG}/conf/dev
     fi
 done
 
-if [[ ! -f ~${QLOG}/conf/dev/EventAgg.base.conf ]]; then
+if [[ ! -f ~/${QLOG}/conf/dev/EventAgg.base.conf ]]; then
     echo "Could not locate ${EVENT_AGG_CONF} and it isn't found in ~/${QLOG}/conf/dev"
     echo "You're going to have a bad time."
     echo "Bye"
