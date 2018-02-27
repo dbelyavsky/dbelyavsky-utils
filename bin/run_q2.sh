@@ -15,26 +15,28 @@ function print_usage {
         -i  the JobID, format YYYYMMDDHH00, this over-writes DATE and HOUR options
         -d  date to run for, defaults to 'yesterday'
         -h  hour to run for, defaults to '12'
+        -f  run for the full day (overrides -h)
         -q  supply an alternative path to the qlog intall dir, defaults to 'qlog' (i.e. will look for $HOME/qlog)
         -j  specify the JIRA which is being tested (for status emails), defaults to 'NOJIRA'
+        -g  generate TODO files (overrides -c)
         -c  copy(download) the data into /user/$USER space before running Q2
             by default only the /user/thresher/status/ias/{mergeandscore|aggregate}/archive/* files are copied 
             to /user/$USER/status/ias/{mergeandscore|aggregate}/todo/
             -u  user data, actually copy the raw data into USER space
                 this will re-create todo files to use /user/$USER/event and /user/$USER/dt/raw
-            -f  copy the full day (overrides -h)
             -o  overwrite existing, by default the script will check if the data exist before copying
         -r  when downloading data (including referential) use this namenode URI as source
 EOU
 }
 
-while getopts 'i:d:h:cfq:j:maur:' opt; do
+while getopts 'i:d:h:cfq:j:maur:g' opt; do
     case $opt in
     i  ) JOBID=${OPTARG} ;;
     d  ) DATE=$(date --date "${OPTARG}" '+%Y-%m-%d') ;;
     h  ) HOUR=${OPTARG} ;;
     c  ) COPY_DATA=true ;;
-    f  ) COPY_FULL_DAY=true ;;
+    f  ) FULL_DAY=true ;;
+    g  ) GENERATE_TODO=true ;;
     q  ) QLOG=${OPTARG} ;;
     j  ) JIRA=${OPTARG} ;;
     m  ) RUN_MERGE_AND_SCORE=true ;;
@@ -53,7 +55,8 @@ done
 : ${DATE:=$(date --date "yesterday" '+%Y-%m-%d')}
 : ${HOUR:=12}
 : ${COPY_DATA:=false}
-: ${COPY_FULL_DAY:=false}
+: ${FULL_DAY:=false}
+: ${GENERATE_TODO:=false}
 : ${QLOG:=qlog}
 : ${JIRA:=NOJIRA}
 : ${RUN_MERGE_AND_SCORE:=false}
@@ -63,9 +66,16 @@ done
 #: ${SRC_DATA_HOST:="hdfs://p-hdpnn02.nj01.303net.pvt"}
 : ${OVERWRITE:=false}
 
-[[ "${COPY_DATA}" == "false" && "${RUN_MERGE_AND_SCORE}" == "false" && "${RUN_AGGREGATE}" == "false" ]] && {
+[[ ${FULL_DAY} == true ]] && HOUR=*
+
+[[ ${GENERATE_TODO} == true ]] && COPY_DATA=false
+
+[[ "${COPY_DATA}" == "false" 
+    && "${RUN_MERGE_AND_SCORE}" == "false" 
+    && "${RUN_AGGREGATE}" == "false" 
+    && "${GENERATE_TODO}" == "false" ]] && {
     print_usage
-    echo "At least one of [-c|-m|-a] must be specified"
+    echo "At least one of [-g|-c|-m|-a] must be specified"
     exit 0
 }
 
@@ -82,7 +92,8 @@ Processed Parameters\n
 \tDATE                = ${DATE}\n
 \tHOUR                = ${HOUR}\n
 \tCOPY_DATA           = ${COPY_DATA}\n
-\tCOPY_FULL_DAY       = ${COPY_FULL_DAY}\n
+\tFULL_DAY            = ${FULL_DAY}\n
+\tGENERATE_TODO       = ${GENERATE_TODO}\n
 \tQLOG                = ${QLOG}\n
 \tJIRA                = ${JIRA}\n
 \tRUN_MERGE_AND_SCORE = ${RUN_MERGE_AND_SCORE}\n
@@ -107,9 +118,6 @@ YESTERDAYPATH=$(date --date "-1 day" '+%Y/%m/%d')
 DATESTAMP=$(date --date "$DATE" '+%Y%m%d')
 PREVDATESTAMP=$(date --date "$PREVDATE" '+%Y%m%d')
 NEXTDATESTAMP=$(date --date "$NEXTDATE" '+%Y%m%d')
-
-DATE_TIME=$(date --date "$DATE $HOUR:00")
-DATESTAMP_PLUS_1_HOUR=$( date --date "$DATE_TIME + 1 hour" '+%Y%m%d%H%M')
 
 DISTCP_CMD="hadoop distcp -D mapreduce.map.memory.mb=2024 -log /tmp/$0.distcp.${RANDOM}.log -m 600"
 [[ "${OVERWRITE}" == "true" ]] && DISTCP_CMD+=" -overwrite "
@@ -213,11 +221,11 @@ hdfs dfs -test -e video/intended_duration_cm/${PREVDATEPATH}/* \
     || hdfs dfs -cp -f ${SRC_DATA_HOST}/user/thresher/video/intended_duration_cm/${PREVDATEPATH}/* video/intended_duration_cm/${PREVDATEPATH}
 
 [[ "${COPY_DATA}" == "true" ]] && {
-   if [[ "${USER_DATA}" == "true" ]];
-   then
-        if [[ "${COPY_FULL_DAY}" == "true" ]]; 
+if [[ "${USER_DATA}" == "true" ]];
+then
+        if [[ "${FULL_DAY}" == "true" ]]; 
         then
-            echo "COPY_FULL_DAY=${COPY_FULL_DAY}"
+            echo "FULL_DAY=${FULL_DAY}"
 
             echo "STARTING COPY OF EVENT FOR ${DATEPATH}"
             hdfs dfs -test -e event/${DATEPATH} && echo "event/${DATEPATH} already exists"
@@ -256,7 +264,7 @@ hdfs dfs -test -e video/intended_duration_cm/${PREVDATEPATH}/* \
                 echo "FINISHED GENERATING TODO FOR ${DATEPATH}${hour}"
             done
         else
-            echo "COPY_FULL_DAY=${COPY_FULL_DAY}"
+            echo "FULL_DAY=${FULL_DAY}"
             # get the FW data
             echo "STARTING COPY OF EVENT FOR ${DATEPATH}, HOUR:${HOUR}"
             hdfs dfs -test -e event/${DATEPATH}/${HOUR} && echo "event/${DATEPATH}/${HOUR} already exists"
@@ -283,8 +291,8 @@ hdfs dfs -test -e video/intended_duration_cm/${PREVDATEPATH}/* \
             echo "FINISHED GENERATING TODO FOR ${DATEPATH}${HOUR}"
         fi
     else    # only copy the todo files
-        echo "COPY_FULL_DAY=${COPY_FULL_DAY}"
-        if [[ "${COPY_FULL_DAY}" == "true" ]]; 
+        echo "FULL_DAY=${FULL_DAY}"
+        if [[ "${FULL_DAY}" == "true" ]]; 
         then
             echo "STARTING COPY OF TODO FOR ${DATEPATH}"
             [[ "${RUN_MERGE_AND_SCORE}" == "true" ]] && {
@@ -320,6 +328,43 @@ hdfs dfs -test -e video/intended_duration_cm/${PREVDATEPATH}/* \
 
 #### RUN Q2 !!!!!!!
 [[ "${RUN_MERGE_AND_SCORE}" == "true" ]] && {
+    [[ ${GENERATE_TODO} == "true" ]] && {
+        echo "Generating todo files:"
+
+        tmpDir=/tmp/todo.${RANDOM}
+        mkdir -p ${tmpDir}
+
+        targetTodoDir='status/ias/mergeandscore/todo'
+
+        RANGE=${HOUR}
+        [[ ${FULL_DAY} == true ]] && RANGE=$(seq -w 0 23)
+
+        for hour in ${RANGE}; do
+            _DATE=$(date --date "${DATE} ${hour}:00")
+            dateTime=$(date --date "${_DATE}" '+%Y%m%d%H00')
+            dateTimePath=$(date --date "${_DATE}" '+%Y/%m/%d/%H/00')
+            dateTimeMinusOneHour=$(date --date "$_DATE -1 hour" '+%Y%m%d%H00')
+            dateTimeMinusOneHourPath=$(date --date "$_DATE -1 hour" '+%Y/%m/%d/%H/00')
+            dateTimePlusOneHour=$(date --date "$_DATE +1 hour" '+%Y%m%d%H00')
+            dateTimePlusOneHourPath=$(date --date "$_DATE +1 hour" '+%Y/%m/%d/%H/00')
+
+            flagFileName=${dateTime}
+            echo "    [${flagFileName}]"
+
+            flagFileText=""
+            flagFileText+="--inputdir=/user/thresher/event/${dateTimeMinusOneHourPath}"
+            flagFileText+=",/user/thresher/event/${dateTimePath}"
+            flagFileText+=",/user/thresher/dt/raw/${dateTimeMinusOneHourPath}"
+            flagFileText+=",/user/thresher/dt/raw/${dateTimePath}"
+            flagFileText+=",/user/thresher/dt/raw/${dateTimePlusOneHourPath}"
+            flagFileText+=" --start=${dateTime} --end=${dateTimePlusOneHour}"
+
+            echo ${flagFileText} > ${tmpDir}/${flagFileName}
+        done
+
+        hdfs dfs -copyFromLocal ${tmpDir}/* ${targetTodoDir}
+    }
+
     hdfs dfs -rm -f -skipTrash status/ias/aggregate/todo/* \
         status/ias/mergeandscore/{in_progress,archive}/${DATESTAMP}${HOUR}*
 
