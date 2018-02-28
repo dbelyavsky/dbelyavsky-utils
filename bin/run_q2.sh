@@ -66,7 +66,7 @@ done
 #: ${SRC_DATA_HOST:="hdfs://p-hdpnn02.nj01.303net.pvt"}
 : ${OVERWRITE:=false}
 
-[[ ${FULL_DAY} == true ]] && HOUR=*
+[[ ${FULL_DAY} == true ]] && HOUR=00
 
 [[ ${GENERATE_TODO} == true ]] && COPY_DATA=false
 
@@ -125,22 +125,22 @@ DISTCP_CMD="hadoop distcp -D mapreduce.map.memory.mb=2024 -log /tmp/$0.distcp.${
 SITELET_SCORING="sitelet_scoring"
 INVISIBLE_FILE="${SITELET_SCORING}/conf/dev/invisible.txt"
 echo "Looking for ${INVISIBLE_FILE}"
-if [[ ! -f ~/${INVISIBLE_FILE} ]]; then
+if [[ ! -f ${HOME}/${INVISIBLE_FILE} ]]; then
     for dirName in \
-        "~/etlscripts/${SITELET_SCORING}" \
-        "~/src/etlscripts/${SITELET_SCORING}"
+        "${HOME}/etlscripts/${SITELET_SCORING}" \
+        "${HOME}/src/etlscripts/${SITELET_SCORING}"
     do
         echo "Trying ${dirName}"
         if [[ -d ${dirName} ]]; then
             echo "Found! Creating a symlink"
-            ln -s ${dirName} ~/${SITELET_SCORING} 
+            ln -s ${dirName} ${HOME}/${SITELET_SCORING} 
             break
         fi
     done
 fi
 
-if [[ -f ~/${INVISIBLE_FILE} ]]; then
-    echo "Confirmed: $(ls -l ~/${INVISIBLE_FILE})"
+if [[ -f ${HOME}/${INVISIBLE_FILE} ]]; then
+    echo "Confirmed: $(ls -l ${HOME}/${INVISIBLE_FILE})"
 else
     echo "Could not locate ${INVISIBLE_FILE}"
     echo "You're going to have a bad time."
@@ -152,17 +152,17 @@ PROCESS_FW_LOGS="process_fw_logs"
 EVENT_AGG_CONF="${PROCESS_FW_LOGS}/conf/dev/EventAgg.base.conf"
 echo "Looking for ${EVENT_AGG_CONF}"
 for dirName in \
-    "~" \
-    "~/etlscripts" \
-    "~/src/etlscripts" 
+    "${HOME}" \
+    "${HOME}/etlscripts" \
+    "${HOME}/src/etlscripts" 
 do
     if [[ -f $dirName/${EVENT_AGG_CONF} ]]; then
-        cp $dirName/${EVENT_AGG_CONF} ~/${QLOG}/conf/dev
+        cp $dirName/${EVENT_AGG_CONF} ${HOME}/${QLOG}/conf/dev
     fi
 done
 
-if [[ ! -f ~/${QLOG}/conf/dev/EventAgg.base.conf ]]; then
-    echo "Could not locate ${EVENT_AGG_CONF} and it isn't found in ~/${QLOG}/conf/dev"
+if [[ ! -f ${HOME}/${QLOG}/conf/dev/EventAgg.base.conf ]]; then
+    echo "Could not locate ${EVENT_AGG_CONF} and it isn't found in ${HOME}/${QLOG}/conf/dev"
     echo "You're going to have a bad time."
     echo "Bye"
     exit 1
@@ -170,14 +170,14 @@ fi
 
 for fName in Q2_ms_conf.sh Q2_agg_conf.sh; do
     echo "Verify that the ${fName} startup scripts are present"
-    if [[ ! -e ~/${QLOG}/bin/${fName} ]] ; then
-        echo "  ~/${QLOG}/bin/${fName} not found.  Will create a symlink."
-        [[ -e ~/${QLOG}/bin/Q2.sh ]] && ln -s ~/${QLOG}/bin/Q2.sh ~/${QLOG}/bin/${fName} || {
-            echo "  ~/${QLOG}/bin/Q2.sh not found."
+    if [[ ! -e ${HOME}/${QLOG}/bin/${fName} ]] ; then
+        echo "  ${HOME}/${QLOG}/bin/${fName} not found.  Will create a symlink."
+        [[ -e ${HOME}/${QLOG}/bin/Q2.sh ]] && ln -s ${HOME}/${QLOG}/bin/Q2.sh ${HOME}/${QLOG}/bin/${fName} || {
+            echo "  ${HOME}/${QLOG}/bin/Q2.sh not found."
             exit 1
         }
     else
-        echo "  ~/${QLOG}/bin/${fName} : OK"
+        echo "  ${HOME}/${QLOG}/bin/${fName} : OK"
     fi
 done
 
