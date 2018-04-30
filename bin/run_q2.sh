@@ -144,12 +144,14 @@ PROCESS_FW_LOGS="process_fw_logs"
 EVENT_AGG_CONF="${PROCESS_FW_LOGS}/conf/dev/EventAgg.base.conf"
 echo "Looking for ${EVENT_AGG_CONF}"
 for dirName in \
-    "~" \
-    "~/etlscripts" \
-    "~/src/etlscripts" 
+    "${HOME}" \
+    "${HOME}/etlscripts" \
+    "${HOME}/src/etlscripts" 
 do
+    echo "... in ${dirName}"
     if [[ -f $dirName/${EVENT_AGG_CONF} ]]; then
         cp $dirName/${EVENT_AGG_CONF} ~/${QLOG}/conf/dev
+        break
     fi
 done
 
