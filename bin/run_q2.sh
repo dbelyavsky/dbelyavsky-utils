@@ -370,8 +370,7 @@ then
     hdfs dfs -rm -f -skipTrash status/ias/aggregate/todo/* \
         status/ias/mergeandscore/{in_progress,archive}/${DATESTAMP}${HOUR}*
 
-#    CMD_MERGE_AND_SCORE="${HOME}/${QLOG}/bin/run.sh q2_merge_and_score.py --force --config ${HOME}/${QLOG}/conf/dev/q2_merge_and_score.json"
-    CMD_MERGE_AND_SCORE="${HOME}/${QLOG}/bin/pyrun.sh q2_merge_and_score.py --config ${HOME}/${QLOG}/conf/staging/q2_merge_and_score.json"
+    CMD_MERGE_AND_SCORE="${HOME}/${QLOG}/bin/pyrun.sh q2_merge_and_score.py --config ${HOME}/${QLOG}/conf/dev/q2_merge_and_score.json"
     echo "${CMD_MERGE_AND_SCORE}"
     echo $(${CMD_MERGE_AND_SCORE})
 
@@ -396,7 +395,7 @@ then
         status/ias/aggregate/{in_progess,archive}/${DATESTAMP}${HOUR}*
 
 
-    CMD_AGGREGATE="${HOME}/${QLOG}/bin/run.sh q2_aggregate.py --ds-agg --force --config ${HOME}/${QLOG}/conf/dev/q2_aggregate.json"
+    CMD_AGGREGATE="${HOME}/${QLOG}/bin/pyrun.sh q2_aggregate.py --ds-agg --force --config ${HOME}/${QLOG}/conf/dev/q2_aggregate.json"
     echo "${CMD_AGGREGATE}"
     echo $(${CMD_AGGREGATE})
 
