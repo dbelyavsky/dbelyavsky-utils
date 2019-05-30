@@ -170,6 +170,12 @@ if [[ ! -f ${HOME}/${QLOG}/conf/dev/EventAgg.base.conf ]]; then
     exit 1
 fi
 
+echo "Looking for $HOME/dev.inf"
+[[ -f $HOME/dev.inf ]] && echo "OK!" || { 
+    echo "Not Found!  (hint: look for in in etlscripts)" 
+    exit 1
+}
+
 for fName in Q2_ms_conf.sh Q2_agg_conf.sh; do
     echo "Verify that the ${fName} startup scripts are present"
     if [[ ! -e ${HOME}/${QLOG}/bin/${fName} ]] ; then
