@@ -9,7 +9,7 @@ PROCESS_BASEDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd | rev | cut -d'/
 
 function print_usage {
     cat - <<-EOU
-    Usage: $0 -m -a [-i <JOBID>] [-d <YYYY-MM-DD>] [-h <HOUR>] [-q <QLOG_PATH>] [-j <JIRA>] [ -c [-u] [-f] ] [-r <URI>]
+    Usage: $0 -m -a [-i <JOBID>] [-d <YYYY-MM-DD>] [-h <HOUR>] [-f] [-q <QLOG_PATH>] [-j <JIRA>] [ -c [-u] [-o] ] [-r <URI>]
         -m  run the 'merge_and_score' phase
         -a  run the 'aggregate' phase
         -i  the JobID, format YYYYMMDDHH00, this over-writes DATE and HOUR options
