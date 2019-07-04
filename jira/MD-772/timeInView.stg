@@ -1,0 +1,54 @@
+TIME_IN_VIEW_OUTER_COLUMNS() ::= <<
+    IF (UEM.inView0sImps100 > UEM.inViewDisplayImps+UEM.outOfViewDisplayImps+UEM.suspiciousDisplayImps, "Pending", FORMAT(100*UEM.inView0sImps100/ROUND(UEM.inViewDisplayImps+UEM.outOfViewDisplayImps+UEM.suspiciousDisplayImps), 2)) as in_view_0s_pct_100,
+    UEM.in_view_0s_imps_100,
+    IF (UEM.inViewGt2qImps100 > UEM.inViewVideoImps+UEM.outOfViewVideoImps+UEM.suspiciousVideoImps, "Pending", FORMAT(100*UEM.inViewGt2qImps100/ROUND(UEM.inViewVideoImps+UEM.outOfViewVideoImps+UEM.suspiciousVideoImps), 2)) as inViewGt2qPct100,
+    UEM.inViewGt2qImps100,
+    ROUND(UEM.inViewDisplayImps+UEM.outOfViewDisplayImps+UEM.suspiciousDisplayImps+UEM.inViewVideoImps+UEM.outOfViewVideoImps+UEM.suspiciousVideoImps) as measuredImps,
+    ROUND(UEM.inViewDisplayImps+UEM.outOfViewDisplayImps+UEM.suspiciousDisplayImps) as measuredDisplayImps,
+    ROUND(UEM.inViewVideoImps+UEM.outOfViewVideoImps+UEM.suspiciousVideoImps) as measuredVideoImps,
+    UEM.totalImpressions,
+    IF($BILLABLE_IMPS_CUTOFF_DATE_CLAUSE()$,  
+        UEM.grossBillableImps  +
+        ROUND(
+        IF(UEM.regularVIDEOInViewImps+UEM.regularVIDEOOutOfViewImps > 0,
+            (UEM.regularInViewGt2qImps100)/(UEM.regularVIDEOInViewImps+UEM.regularVIDEOOutOfViewImps)*(UEM.regularVIDEOImps-UEM.regularVIDEOSuspiciousImps),
+            0)
+        )
+    ,
+        ROUND(
+        IF(UEM.regularInViewImps+UEM.regularOutOfViewImps > 0,
+            (UEM.regularInViewGt2qImps100+UEM.regularEstimatedDisplayBillableImps+UEM.regularRawBillableDisplayImps)/(UEM.regularInViewImps+UEM.regularOutOfViewImps)*(UEM.regularImps-UEM.regularSuspiciousImps),
+            0)
+        ) 
+    ) as billableImps
+>>
+
+TIME_IN_VIEW_INNER_COLUMNS() ::=<<
+    SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$, FULLY_IN_VIEW_0S_IMPS, 0)) as in_view_0s_imps_100,
+    SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$, FULLY_IN_VIEW_THRU_2D_IMPS, 0)) as in_view_gt_2q_imps_100,
+    ROUND(SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$, IF(Q_DATA_IMPS > IMPS, ((IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), IN_VIEW_IMPS), 0))) as in_view_display_imps,
+    ROUND(SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$, IF(Q_DATA_IMPS > IMPS, ((NOT_IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), NOT_IN_VIEW_IMPS), 0))) as out_of_view_display_imps,
+    SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$, SUSPICIOUS_IMPS, 0)) as suspicious_display_imps,
+    ROUND(SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$, IF(Q_DATA_IMPS > IMPS, ((IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), IN_VIEW_IMPS), 0))) as in_view_video_imps,
+    ROUND(SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$, IF(Q_DATA_IMPS > IMPS, ((NOT_IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), NOT_IN_VIEW_IMPS), 0))) as out_of_view_video_imps,
+    SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$, SUSPICIOUS_IMPS, 0)) as suspicious_video_imps,
+    SUM(IMPS) as total_impressions,
+    SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$ , GROSS_BILLABLE_DISPLAY_IMPS, 0)) as gross_billable_imps,
+    MIN(HIT_DATE) as min_date,
+
+    SUM(IMPS)                                                                                          as regular_imps,
+    SUM(SUSPICIOUS_IMPS)                                                                               as regular_suspicious_imps,
+    ROUND(SUM(IF(Q_DATA_IMPS > IMPS, ((IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), IN_VIEW_IMPS)))              as regular_in_view_imps,
+    ROUND(SUM( IF(Q_DATA_IMPS > IMPS, ((NOT_IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), NOT_IN_VIEW_IMPS)))     as regular_out_of_view_imps,
+
+    SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$ AND BILLABLE_DISPLAY_IMPS IS NOT NULL , BILLABLE_DISPLAY_IMPS, 0))                              as regular_raw_billable_display_imps,
+    SUM(IF($MEDIA_TYPE_DISPLAY_FILTER()$ AND BILLABLE_DISPLAY_IMPS IS NULL , FULLY_IN_VIEW_0S_IMPS+FULLY_IN_VIEW_0S_IMPS, 0))            as regular_estimated_display_billable_imps,
+    
+    SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$ , IMPS, 0))                                                                                       as regular_video_imps,
+    SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$ , SUSPICIOUS_IMPS, 0))                                                                            as regular_video_suspicious_imps,
+    ROUND(SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$ , IF(Q_DATA_IMPS > IMPS, ((IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), IN_VIEW_IMPS), 0)))           as regular_video_in_view_imps,
+    ROUND(SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$ , IF(Q_DATA_IMPS > IMPS, ((NOT_IN_VIEW_IMPS)/(Q_DATA_IMPS/IMPS)), NOT_IN_VIEW_IMPS), 0)))   as regular_video_out_of_view_imps,
+    SUM(IF($MEDIA_TYPE_VIDEO_FILTER()$ , FULLY_IN_VIEW_THRU_2D_IMPS, 0))                                                                 as regular_in_view_gt_2q_imps_100
+
+>>
+
