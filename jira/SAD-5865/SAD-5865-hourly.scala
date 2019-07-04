@@ -129,7 +129,7 @@ for (day <- 1 to 31) {
             json(OUTPUT)
         }
 
-        println(f"${Calendar.getInstance.getTime} INFO: Execution completed with status in ${returnStatus._2} ms")
+        println(f"${Calendar.getInstance.getTime} INFO: Execution completed with status [${returnStatus._1}] in ${returnStatus._2} ms")
       } else {
         println(s"INPUT [$INPUT] does not exist, skipped.")
       }
