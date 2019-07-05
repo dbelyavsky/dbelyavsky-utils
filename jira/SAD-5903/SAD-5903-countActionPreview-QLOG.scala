@@ -1,7 +1,8 @@
-val actionIndex=15
+val actionIndex=16
+var givtIndex=80
 
 val DATE_PATH = "2019/07/01/12"
-val PROD_EVENT = "/user/thresher/event"
+val PROD_QLOG = "/user/thresher/quality/logs"
 
 def scoreCountsMapGenerator(
                              line : String
@@ -10,8 +11,8 @@ def scoreCountsMapGenerator(
   val chunks = line.split("\t")
 
   scoreCounts += ("TOTAL" -> 1)
-  scoreCounts += ("actionPreview" -> (
-    if ( "preview".equals(chunks(actionIndex)) ) {
+  scoreCounts += ("actionPreviewNOTGIVT" -> (
+    if ( "preview".equals(chunks(actionIndex)) && "1".equals(chunks(givtIndex)) ) {
       1
     } else {
       0
@@ -31,7 +32,7 @@ def mapCountingReducer(
   countsThis
 }
 
-sc.textFile(s"$PROD_EVENT/$DATE_PATH/*/LOG.*").
+sc.textFile(s"$PROD_QLOG/$DATE_PATH/impressions/*").
   map(line => ("counts",scoreCountsMapGenerator(line))).
   reduceByKey(mapCountingReducer(_,_)).
   collect()

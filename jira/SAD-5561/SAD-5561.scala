@@ -1,4 +1,7 @@
 import org.apache.hadoop.fs.{Path,FileSystem}
+import java.util.Calendar
+
+val OVERWRITE_OUTPUT = true
 
 val javascriptInfoIndex = 37
 val platformIndex = 38
@@ -8,7 +11,7 @@ val fraudScoresIndex = 95
 val mobileAppPattern = """ mapp=1""".r
 
 val HDFS_BASE = "/user/thresher/quality/logs"
-val JIRA = "SAD-5561"
+val OUTPUT_BASE = "SAD-5561.V2"
 val YEAR = "2019"
 val MONTH = "04"
 var DAY = "01"
@@ -78,34 +81,47 @@ def mapCountingReducer(
     , countsThat:scala.collection.mutable.Map[String,Long]
 ) : scala.collection.mutable.Map[String,Long] = {
     (countsThis.keys ++ countsThat.keys) foreach {
-        key => countsThis(key) = countsThis.getOrElse(key,0L).toLong + countsThat.getOrElse(key,0L).toLong
+        key => countsThis(key) = countsThis.getOrElse(key,0L) + countsThat.getOrElse(key,0L)
     }
     countsThis
 }
 
+def time[R](block: => R): (R, Double) = { 
+    val startTime = System.nanoTime()
+    val result = block // call-by-name
+    val timeDiffMS = (System.nanoTime() - startTime) / 1000000d
+    (result, timeDiffMS)
+}
 
-for (day <- 1 to 30) {
-    for (hour <- 0 to 23) {
-        DAY = f"$day%02d"
-        HOUR = f"$hour%02d"
+@transient val fs = FileSystem.get(sc.hadoopConfiguration)
+//for (day <- 1 to 30) {
+//    for (hour <- 0 to 23) {
+//        DAY = f"$day%02d"
+//        HOUR = f"$hour%02d"
 
         val INPUT = s"$HDFS_BASE/$YEAR/$MONTH/$DAY/$HOUR/impressions/*"
-        val OUTPUT = s"${JIRA}.V2/$YEAR/$MONTH/$DAY/$HOUR"
+        val OUTPUT = s"${OUTPUT_BASE}/$YEAR/$MONTH/$DAY/$HOUR"
 
         println(s"Looking at input from [$INPUT]")
 
-        @transient val fs = FileSystem.get(sc.hadoopConfiguration)
-        //FileSystem.get(sc.hadoopConfiguration).delete(new Path(OUTPUT), true)
+        if (OVERWRITE_OUTPUT) {
+            FileSystem.get(sc.hadoopConfiguration).delete(new Path(OUTPUT), true)
+        }
+
         if ( fs.exists(new Path(OUTPUT) ) ) {
-            println("\tAlready Exists. Skipping.")
+            println("\t[$OUTPUT] Already Exists and OVERWRITE is OFF: Skipping.")
         } else {
             println(s"Writing to [$OUTPUT]")
-            val oneHourData = sc.textFile(INPUT).
+            val returnStatus = time {
+                sc.textFile(INPUT).
                 map(line => (s"$YEAR-$MONTH-$DAY-$HOUR", scoreCountsMapGenerator(line))).
                 reduceByKey(mapCountingReducer(_,_)).
                 toDF().
                 write.
                 json(OUTPUT)
+            }
+
+            println(f"${Calendar.getInstance.getTime} INFO: Execution completed with status in ${returnStatus._2} ms")
         }
-    }
-}
+//    }
+//}

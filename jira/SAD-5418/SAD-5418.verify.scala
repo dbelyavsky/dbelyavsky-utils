@@ -40,12 +40,12 @@ def mapCountingReducer(
     countsThis
 }
 
-sc.textFile("quality.SAD-5418.cookies/logs/2019/01/28/12/impressions/*").
+sc.textFile("quality.SAD-5418.cookies1/logs/2019/01/28/12/impressions/*").
     map(line => ("counts",scoreCountsMapGenerator(line))).
     reduceByKey(mapCountingReducer(_,_)).
     collect()
 
-sc.textFile("quality.SAD-5418.no_cookies/logs/2019/01/28/12/impressions/*").
+sc.textFile("quality.SAD-5418.no_cookies1/logs/2019/01/28/12/impressions/*").
     map(line => ("counts",scoreCountsMapGenerator(line))).
     reduceByKey(mapCountingReducer(_,_)).
     collect()

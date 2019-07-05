@@ -65,6 +65,6 @@ sc.textFile(s"$PROD_EVENTAGG/$DATE_PATH/*").
   reduceByKey(mapCountingReducer(_,_)).
   collect()
 
-
-
+//res0: Array[(String, scala.collection.mutable.Map[String,Long])] = Array((counts,Map(givt -> 2127412, imps -> 360509239, TOTAL -> 362636651)))
+//res1: Array[(String, scala.collection.mutable.Map[String,Long])] = Array((counts,Map(givt -> 2118553, imps -> 360518098, TOTAL -> 362636651)))
 
