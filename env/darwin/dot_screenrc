@@ -1,0 +1,4 @@
+defscrollback 10000
+hardstatus lastline
+hardstatus string "%{= wK} %{= cW} %h %{-} [%{= rW}%l%{-}] %= %-w %{= bW}%n-%t%{-} %+w %= %{= gW} %Y-%m-%d %D %c"
+shell -$SHELL

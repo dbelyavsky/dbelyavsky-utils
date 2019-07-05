@@ -1,0 +1,17 @@
+[user]
+	name = dbelyavsky
+	email = dbelyavsky@integralads.com
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true
+[core]
+	ignorecase = false
+	excludesfile = /Users/dbelyavsky/.gitignore
+[alias]
+	co = checkout
+	ci = commit
+	st = status
+	br = branch
+[push]
+	default = current

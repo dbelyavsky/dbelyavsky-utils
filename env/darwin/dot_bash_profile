@@ -1,0 +1,105 @@
+#
+
+PS1='\u@\H:\w $ '
+
+export PATH=/usr/local/sbin:$PATH
+
+OPT_PATH=/usr/local/opt
+COREUTILS=${OPT_PATH}/coreutils/libexec
+export PATH=${COREUTILS}/gnubin:$PATH
+export MANPATH=${COREUTILS}/gnuman:$MANPATH
+PYTHON=${OPT_PATH}/python
+PERL=${OPT_PATH}/perl
+NODE=${OPT_PATH}/node
+NPM=${OPT_PATH}/npm
+GRUNT=${OPT_PATH}/grunt-cli
+
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+
+export MYSQL_HOME=/usr/local/opt/mysql-client
+export LDFLAGS="-L${MYSQL_HOME}/lib"
+export CPPFLAGS="-I${MYSQL_HOME}/include"
+
+for aPath in \
+    "${MYSQL_HOME}" \
+    "${PERL}" \
+    "${PYTHON}" \
+    "${NODE}" \
+    "${NPM}" \
+    "${GRUNT}" \
+    "${JAVA_HOME}" \
+    "${HOME}/local" \
+; do
+    [[ -d "${aPath}/bin" ]] && export PATH=${aPath}/bin:$PATH
+    [[ -d "${aPath}/sbin" ]] && export PATH=${aPath}/sbin:$PATH
+    [[ -d "${aPath}/man" ]] && export MANPATH=${aPath}/man:$MANPATH
+    [[ -d "${aPath}/share/man" ]] && export MANPATH=${aPath}/share/man:$MANPATH
+done
+
+# Hadoop Local Settings
+export HADOOP_HOME=${OPT_PATH}/hadoop/libexec
+$HADOOP_HOME/libexec/hdfs-config.sh
+export HADOOP_COMMON_LIB_NATIVE_DIR=${HADOOP_HOME}/share/hadoop/hdfs/lib/native
+export HADOOP_OPTS="$HADOOP_OPTS -Djava.library.path=${HADOOP_COMMON_LIB_NATIVE_DIR}"
+#export HADOOP_COMMON_LIB_NATIVE_DIR="~/local/hadoop/lib/"
+#export HADOOP_OPTS="${HADOOP_OPTS} -Djava.library.path=${HADOOP_COMMON_LIB_NATIVE_DIR}"
+
+# Fink
+#test -r /sw/bin/init.sh && . /sw/bin/init.sh
+
+# Airflow
+AIRFLOW_HOME=${HOME}/airflow
+function start-airflow-webserver() {
+    LOG_FILE=${AIRFLOW_HOME}/logs/airflow.$(date +%Y%m).log
+    airflow webserver -D=True -A=- -E=- >> ${LOG_FILE} 2>&1 &
+}
+
+function reload-airflow-webserver() {
+    kill -HUP $(cat ${AIRFLOW_HOME}/airflow-webserver.pid)
+}
+
+function stop-airflow-webserver() {
+    kill -KILL $(cat ${AIRFLOW_HOME}/airflow-webserver.pid)
+}
+
+test -e "${HOME}/.myVertica" && source "${HOME}/.myVertica"
+test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+
+
+# libressl
+export PATH="/usr/local/opt/libressl/bin:${PATH}"
+export LDFLAGS="-L/usr/local/opt/libressl/lib ${LDFLAGS}"
+export CPPFLAGS="-I/usr/local/opt/libressl/include ${CPPFLAGS}"
+
+# funny stuff should only happen in interactive shell
+#[[ "$SHLVL" = "1" ]] && {
+#shopt | grep login_shell | grep -q on && { 
+#[[ $- = *i* ]] && {
+tty -s && {
+    #say -v Veena "Hello, its $(date '+%A %e %B %Y, %R')" &
+    say -v Milena "Привет, сейчас $(LC_ALL=ru_RU date '+%A %e %B %Y, %R')" & 
+    #espeak -v en+f4 -s 150 "Hello and Welcome.  Its $(date '+%A %e %B %Y, %R')" &
+
+    cowFiles=(`ls /usr/local/share/cows`)
+    cowFile=${cowFiles[ $RANDOM % ${#cowFiles[@]} ]} 
+    prophetChoice=$(( $RANDOM % 2 ))
+    if [ ${prophetChoice} -eq 0 ]; then
+        fortune | ponythink 
+    else
+        fortune | cowsay -s -f $cowFile | lolcat
+    fi
+
+    ansiweather -l $(geo -o zip),US
+}
+
+alias grep='grep --color'
+alias ls='ls -G --color=auto'
+alias spark='spark2-shell \
+    --conf spark.network.timeout=800 \
+    --executor-memory 6G \
+    --driver-memory 4G  \
+    --conf spark.dynamicAllocation.enabled=true \
+    --conf spark.dynamicAllocation.minExecutors=2 \
+    --conf spark.dynamicAllocation.maxExecutors=300 \
+    --conf spark.executor.extraClassPath="/opt/cloudera/parcels/SPARK2/lib/spark2/jars/commons-lang3-3.3.2.jar" \
+    --driver-class-path /opt/cloudera/parcels/SPARK2/lib/spark2/jars/commons-lang3-3.3.2.jar'
