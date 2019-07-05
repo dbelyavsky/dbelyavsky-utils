@@ -9,6 +9,7 @@
     required = true
 [core]
     ignorecase = false
+	excludesfile = /home/dbelyavsky/.gitignore
 [alias]
     co = checkout
     ci = commit

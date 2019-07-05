@@ -1,0 +1,4 @@
+.venv/
+target/
+.tox/
+*.egg-info/
