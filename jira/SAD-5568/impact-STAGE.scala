@@ -84,6 +84,7 @@ for (day <- 24 to 26) {
     } else {
       if (fs.exists(new Path(INPUT).getParent())) {
         println(s"Writing to [$OUTPUT]")
+
         val returnStatus = time {
           sc.textFile(INPUT).
             map(line => (s"$YEAR-$MONTH-$DAY-$HOUR", scoreCountsMapGenerator(line))).

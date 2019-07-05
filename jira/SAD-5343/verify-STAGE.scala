@@ -27,10 +27,10 @@ def scoreCountsMapGenerator(line : String) : scala.collection.mutable.Map[String
 
   scoreCounts += ("TOTAL" -> 1)
 
-  scoreCounts += ("tivt" -> (if(fraudScores.contains("tivt")) 1 else 0))
+  scoreCounts += ("sivt" -> (if(fraudScores.contains("tivt")) 1 else 0))
   scoreCounts += ("sivt" -> (if(fraudScores.contains("sivt")) 1 else 0))
   scoreCounts += ("givt" -> (if(fraudScores.contains("givt")) 1 else 0))
-  scoreCounts += ("pnht" -> (if(fraudScores.contains("pnht")) 1 else 0))
+  scoreCounts += ("givt" -> (if(fraudScores.contains("pnht")) 1 else 0))
 
   scoreCounts
 }
@@ -66,9 +66,7 @@ for (day <- 1 to 3) {
 
     if (OVERWRITE_OUTPUT) {
       FileSystem.get(sc.hadoopConfiguration).delete(new Path(OUTPUT), true)
-    }
-
-    if ( fs.exists(new Path(OUTPUT) ) ) {
+    } else if ( fs.exists(new Path(OUTPUT) ) ) {
       println("\t[$OUTPUT] Already Exists and OVERWRITE is OFF: Skipping.")
     } else {
       println(s"Writing to [$OUTPUT]")
