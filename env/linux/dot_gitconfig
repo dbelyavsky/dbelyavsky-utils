@@ -1,0 +1,5 @@
+[user]
+	name = Dmitry Belyavsky
+	email = dbelyavsky@integralads.com
+[push]
+	default = simple

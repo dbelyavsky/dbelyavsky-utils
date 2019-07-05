@@ -1,0 +1,20 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# User specific aliases and functions
+export PS1='\u@\h:\w [\!] '
+
+alias spark="spark2-shell \
+	--conf spark.network.timeout=800 \
+    --executor-memory 6G \
+    --driver-memory 4G \
+    --conf spark.dynamicAllocation.enabled=true \
+    --conf spark.dynamicAllocation.minExecutors=2 \
+    --conf spark.dynamicAllocation.maxExecutors=300 \
+    --conf spark.executor.extraClassPath='/opt/cloudera/parcels/SPARK2/lib/spark2/jars/commons-lang3-3.3.2.jar' \
+    --driver-class-path /opt/cloudera/parcels/SPARK2/lib/spark2/jars/commons-lang3-3.3.2.jar \
+    "

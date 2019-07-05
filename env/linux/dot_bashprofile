@@ -1,0 +1,24 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# User specific environment and startup programs
+for p in \
+    ${HOME}/src/dbelyavsky-utils/bin \
+    ${HOME}/local/bin \
+    ${HOME}/.local/bin \
+    ; do
+    [[ -d ${p} ]] && export PATH=${p}:${PATH}
+done
+
+export JAVA_HOME=/usr/java/latest
+export PIG_CONF_DIR=${HOME}/.config
+
+test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+# set the gitBranch user var
+function iterm2_print_user_vars() {
+    iterm2_set_user_var gitBranch $((git branch 2> /dev/null) | grep \* | cut -c3-)
+}

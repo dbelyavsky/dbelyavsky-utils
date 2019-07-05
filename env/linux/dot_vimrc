@@ -1,0 +1,13 @@
+syntax on
+set shiftwidth=4
+set tabstop=4
+augroup filetypedetect
+  au BufNewFile,BufRead *.pig set filetype=pig syntax=pig
+augroup END 
+au BufRead,BufNewFile *.scala set filetype=scala
+au! Syntax scala source ~/.vim/syntax/scala.vim
+set nu
+set expandtab
+set shiftround
+set softtabstop=4
+set autoindent

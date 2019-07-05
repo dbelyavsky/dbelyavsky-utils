@@ -1,0 +1,4 @@
+defscrollback 10000
+hardstatus lastline
+hardstatus string "%{=b KC}%{+ rY}%l%{-} %h%=%{+ Yk}%w%{-} %{+ Ck}%Y-%m-%d %D %c"
+shell -$SHELL
