@@ -324,7 +324,8 @@ then
                 SRC_PATH="/user/$SOURCE_USER/status/ias/mergeandscore/archive/${DATESTAMP}${HOUR}*"
                 DEST_PATH="status/ias/mergeandscore/todo"
                 hdfs dfs -test -e ${DEST_PATH}/${DATESTAMP}${HOUR}* && echo "${DEST_PATH}/${DATESTAMP}${HOUR}* already exists"
-                ${DISTCP_CMD} ${SRC_PATH} ${DEST_PATH}
+                #${DISTCP_CMD} ${SRC_PATH} ${DEST_PATH}
+                hdfs dfs -cp ${SRC_PATH} ${DEST_PATH}
             }
             [[ "${RUN_AGGREGATE}" == "true" && "${RUN_MERGE_AND_SCORE}" != "true" ]] && {
                 SRC_PATH="/user/$SOURCE_USER/status/ias/aggregate/archive/${DATESTAMP}${HOUR}*"

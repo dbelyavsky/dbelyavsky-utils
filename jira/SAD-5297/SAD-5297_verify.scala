@@ -3,11 +3,11 @@ import org.apache.hadoop.fs.Path
   
 val JIRA = "SAD-5297"
 val YEAR = "2019"
-val MONTH = "02"
-val DAY = 21
-val HOUR = 12
+val MONTH = "03"
+val DAY = 20
+val HOUR = 05
 
-val IN_BASE = "quality"
+val IN_BASE = "/user/thresher/quality"
 val IN_PATH_QLOG = f"${IN_BASE}/logs/${YEAR}/${MONTH}/${DAY}%02d/${HOUR}%02d/impressions/*"
 val IN_PATH_PREMART = f"${IN_BASE}/scores/aggdt4/${YEAR}/${MONTH}/${DAY}%02d/${HOUR}%02d/*"
 

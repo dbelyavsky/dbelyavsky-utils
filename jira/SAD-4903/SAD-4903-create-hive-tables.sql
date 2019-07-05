@@ -106,10 +106,10 @@ create external table dbelyavsky.qlog_PROD (
 
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
-COLLECTION ITEMS TERMINATED BY ', '
+COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY '='
 LINES TERMINATED BY '\n'
-LOCATION '/user/dbelyavsky/SAD-4903/test_output/PROD/quality/logs/2018/08/15/12/impressions/';
+LOCATION '/user/dbelyavsky/SAD-4903/PROD/quality/logs/impressions/2018/09/03/12/';
 
 ----------------
 
@@ -221,7 +221,7 @@ create external table dbelyavsky.qlog_BRANCH (
 
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
-COLLECTION ITEMS TERMINATED BY ', '
+COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY '='
 LINES TERMINATED BY '\n'
-LOCATION '/user/dbelyavsky/SAD-4903/test_output/BRANCH/quality/logs/2018/08/15/12/impressions/';
+LOCATION '/user/dbelyavsky/SAD-4903/BRANCH/quality/logs/impressions/2018/09/03/12/';

@@ -1,7 +1,7 @@
 import org.apache.hadoop.fs.{Path,FileSystem}
 import java.util.Calendar
 
-val OVERWRITE_OUTPUT = false
+val OVERWRITE_OUTPUT = true
 
 val givtIndex = 80
 val fraudScoresIndex = 95
@@ -12,7 +12,7 @@ val OUTPUT_BASE_THRESHER = "SAD-5787.THRESHER"
 val OUTPUT_BASE_USER = "SAD-5787.USER"
 val YEAR = "2019"
 val MONTH = "06"
-var DAY = "05"
+var DAY = "06"
 var HOUR = "12"
 
 def scores2Dict(
@@ -72,7 +72,9 @@ for (inOut <- List(List(HDFS_BASE_THRESHER, OUTPUT_BASE_THRESHER), List(HDFS_BAS
 
   if (OVERWRITE_OUTPUT) {
     FileSystem.get(sc.hadoopConfiguration).delete(new Path(OUTPUT), true)
-  } else if (fs.exists(new Path(OUTPUT))) {
+  } 
+  
+  if (fs.exists(new Path(OUTPUT))) {
     println("\t[$OUTPUT] Already Exists and OVERWRITE is OFF: Skipping.")
   } else {
     println(s"Writing to [$OUTPUT]")

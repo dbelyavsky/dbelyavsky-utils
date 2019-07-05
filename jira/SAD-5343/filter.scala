@@ -17,6 +17,21 @@ val overallResultPattern = """.*"r":(\d+),"rules":.*""".r
 val browserTypePattern = """.*"bt":"(\w+)".*""".r
 val browserVersionPattern = """.*"bv":"(\d+)".*""".r
 
+def filterSca(scaStr:String) : Try[Boolean] = {
+  Try {
+    //    val overallResultPattern(rrResult) = scaStr
+    val browserTypePattern(bt) = scaStr
+    val browserVersionPattern(bv) = scaStr
+
+    //    ( rrResult.toInt == 1
+    //      && (
+    (bt == "firefox" && bv.toInt >= 55 ) ||
+      (bt == "chrome" && bv.toInt >= 65 )
+    //      )
+    //      )
+  }
+}
+
 def filterMe(logLine : String) : Boolean = {
     val chunks = logLine.split("""\t""")
     filterSca(chunks(scaResultsIdx)) match {
@@ -25,18 +40,7 @@ def filterMe(logLine : String) : Boolean = {
     }
 }
 
-def filterSca(scaStr:String) : Try[Boolean] = {
-    Try {
-        val overallResultPattern(rrResult) = scaStr
-        val browserTypePattern(bt) = scaStr
-        val browserVersionPattern(bv) = scaStr
 
-        ( rrResult.toInt == 1 
-            && bt == "firefox"
-            && bv.toInt >= 55
-        )
-    }
-}
 
 @transient val fs = FileSystem.get(sc.hadoopConfiguration)
 FileSystem.get(sc.hadoopConfiguration).delete(new Path(outputPath), true)

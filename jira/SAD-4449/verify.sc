@@ -72,7 +72,17 @@ def mapCountingReducer(
     countsThis
 }
 
-sc.textFile("hdfs://etl-stage-dn03.303net.pvt/user/etlstage/quality/logs/2019/03/27/05/impressions/*").
+sc.textFile("quality.SAD-4449.dev.20190204/logs/2019/02/04/12/impressions/*").
+    map(line => ("counts",scoreCountsMapGenerator(line))).
+    reduceByKey(mapCountingReducer(_,_)).
+    collect()
+
+sc.textFile("quality.SAD-4449.canary.20190201/logs/2019/02/01/12/impressions/*").
+    map(line => ("counts",scoreCountsMapGenerator(line))).
+    reduceByKey(mapCountingReducer(_,_)).
+    collect()
+
+sc.textFile("har:///user/etlstage/archive/2019-02-01/q2.har/quality/logs/2019/02/01/10/impressions/*").
     map(line => ("counts",scoreCountsMapGenerator(line))).
     reduceByKey(mapCountingReducer(_,_)).
     collect()

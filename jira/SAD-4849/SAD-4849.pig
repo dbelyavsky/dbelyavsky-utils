@@ -1,68 +1,47 @@
 IMPORT '/home/dbelyavsky/src/etlscripts/aggregation_helper/pig/macros/load.macro';
 
-%default HDFS_BASE '/user/thresher/quality/logs'
-%default JIRA 'SAD-4849-givt'
+%default HDFS_BASE 'quality/logs'
+%default JIRA 'SAD-4849'
 %default YEAR '2018'
-%default MONTH '08'
-%default DAY '01'
+%default MONTH '07'
+%default DAY '09'
 %default HOUR '12'
 
 %default INPUT '$HDFS_BASE/$YEAR/$MONTH/$DAY/$HOUR/impressions/*'
-%default OUTPUT '$JIRA/$YEAR/$MONTH/$DAY/$HOUR'
+%default OUTPUT '$JIRA/$YEAR/$MONTH/$DAY/$HOUR' 
 
 qlog = LOAD_JOINED('$INPUT');
 
-identified_metrics = FOREACH qlog GENERATE
-    ((platform != 'mob' AND platform != 'tab') ? 1 : 0) as desktop,
-    ((platform == 'mob' OR platform == 'tab') AND NOT javascriptInfo MATCHES '.* mapp=1.*' ? 1 : 0) as mobileWeb,
-    ((platform == 'mob' OR platform == 'tab') AND javascriptInfo MATCHES '.* mapp=1.*' ? 1 : 0) as mobileApp,
-    (fraudScores MATCHES '.* sivt=1.0.*' ? 1 : 0) as sivt,
-    (givt == 1 ? 1 : 0) as givt,
-    (givt == 1 AND fraudScores MATCHES '.*givta=1.0.*' ? 1 : 0) AS abfBot,
-    (givt == 1 AND fraudScores MATCHES '.*givtb=1.0.*' ? 1 : 0) AS iabBrowser,
-    (givt == 1 AND fraudScores MATCHES '.*givts=1.0.*' ? 1 : 0) AS iabBot;
+qlog_flagged = FOREACH qlog GENERATE
+   (givt == 1 AND fraudScores MATCHES '.*givta=1.0.*' ? 1 : 0) AS abfBot,
+   (givt == 1 AND fraudScores MATCHES '.*givtb=1.0.*' ? 1 : 0) AS iabBrowser,
+   (givt == 1 AND fraudScores MATCHES '.*givts=1.0.*' ? 1 : 0) AS iabBot,
+   (fraudScores MATCHES '.* sivt=1.0.*' ? 1 : 0) AS sivtTotal,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* ha=1.0.*' ? 1 : 0) AS ha,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht1=1.0.*' ? 1 : 0) AS nht1,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht2=1.0.*' ? 1 : 0) AS nht2,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht3=1.0.*' ? 1 : 0) AS nht3,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht4=1.0.*' ? 1 : 0) AS nht4,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht5=1.0.*' ? 1 : 0) AS nht5,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht6=1.0.*' ? 1 : 0) AS nht6,
+   (fraudScores MATCHES '.* sivt=1.0.*' AND fraudScores MATCHES '.* nht7=1.0.*' ? 1 : 0) AS nht7;
 
-metrics_by_platform = FOREACH identified_metrics GENERATE
-    desktop as desktop,
-    mobileWeb as mobileWeb,
-    mobileApp as mobileApp,
-    sivt as sivt,
-    givt as givt,
-    (sivt * desktop) AS sivt_desktop,
-    (sivt * mobileWeb) AS sivt_mobileWeb,
-    (sivt * mobileApp) AS sivt_mobileApp,
-    (abfBot * desktop) AS abfBot_desktop,
-    (abfBot * mobileWeb) AS abfBot_mobileWeb,
-    (abfBot * mobileApp) AS abfBot_mobileApp,
-    (iabBrowser * desktop) AS iabBrowser_desktop,
-    (iabBrowser * mobileWeb) AS iabBrowser_mobileWeb,
-    (iabBrowser * mobileApp) AS iabBrowser_mobileApp,
-    (iabBot * desktop) AS iabBot_desktop,
-    (iabBot * mobileWeb) AS iabBot_mobileWeb,
-    (iabBot * mobileApp) AS iabBot_mobileApp;
-
-result = FOREACH (GROUP metrics_by_platform ALL) GENERATE
+result = FOREACH (GROUP qlog_flagged ALL) GENERATE
     CONCAT('$YEAR', '-', '$MONTH', '-', '$DAY') as date,
     $HOUR as hour,
-    COUNT_STAR(metrics_by_platform) as totalCount,
-    SUM($1.desktop) AS totalDesktop,
-    SUM($1.mobileWeb) AS totalMobileWeb,
-    SUM($1.mobileApp) AS totalMobileApp,
-    SUM($1.sivt) AS sivtTotal,
-    SUM($1.givt) AS givtTotal,
-    SUM($1.sivt_desktop) AS sivt_desktop,
-    SUM($1.sivt_mobileWeb) AS sivt_mobileWeb,
-    SUM($1.sivt_mobileApp) AS sivt_mobileApp,
-    SUM($1.abfBot_desktop) AS abfBotCnt_desktop,
-    SUM($1.abfBot_mobileWeb) AS abfBotCnt_mobileWeb,
-    SUM($1.abfBot_mobileApp) AS abfBotCnt_mobileApp,
-    SUM($1.iabBrowser_desktop) AS iabBrowserCnt_desktop,
-    SUM($1.iabBrowser_mobileWeb) AS iabBrowserCnt_mobileWeb,
-    SUM($1.iabBrowser_mobileApp) AS iabBrowserCnt_mobileApp,
-    SUM($1.iabBot_desktop) AS iabBotCnt_desktop,
-    SUM($1.iabBot_mobileWeb) AS iabBotCnt_mobileWeb,
-    SUM($1.iabBot_mobileApp) AS iabBotCnt_mobileApp;
+    COUNT_STAR(qlog_flagged) as totalCount,
+    SUM($1.abfBot) AS abfBotCnt,
+    SUM($1.iabBrowser) AS iabBrowserCnt,
+    SUM($1.iabBot) AS iabBotCnt,
+    SUM($1.sivtTotal) AS sivtTotal,
+    SUM($1.ha) AS haCnt,
+    SUM($1.nht1) AS nht1Cnt,
+    SUM($1.nht2) AS nht2Cnt,
+    SUM($1.nht3) AS nht3Cnt,
+    SUM($1.nht4) AS nht4Cnt,
+    SUM($1.nht5) AS nht5Cnt,
+    SUM($1.nht6) AS nht6Cnt,
+    SUM($1.nht7) AS nht7Cnt;
 
 RMF $OUTPUT
 STORE result INTO '$OUTPUT' USING PigStorage('\t');
-

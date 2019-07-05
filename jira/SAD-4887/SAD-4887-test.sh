@@ -40,4 +40,4 @@ if [[ "${etl_environment}" = "prod" ]]; then
 
     #checkError 1 WARNING "Can't create tmpfile for json. Therefore, creation of Jira card via email."
     echo "${email_body}" | mutt -s "$SUMMARY" -- ${JIRA_HANDLER_MAIL}
-fi
+fi  

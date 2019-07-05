@@ -1,6 +1,7 @@
+val DATE_TIME = "2019/02/28/12"
 val fraudScoresIndex=95
  
-val scoreKeys = List("ds", "dsu", "dsr", "dse")
+val scoreKeys = List("sivt", "givt", "givtt")
  
 def scores2Dict(
     line : String
@@ -43,10 +44,12 @@ def mapCountingReducer(
     countsThis
 }
  
-sc.textFile("quality.SAD-5731-DEV/logs/2019/04/30/12/impressions/*").
+sc.textFile(f"/user/thresher/quality/logs/${DATE_TIME}/impressions/*").
     map(line => ("counts",scoreCountsMapGenerator(line))).
     reduceByKey(mapCountingReducer(_,_)).
-    collect()
+    saveAsTextFile(f"RES-88/${DATE_TIME}/PROD")
 
-// 2019-05-02
-// result: res5: Array[(String, scala.collection.mutable.Map[String,Long])] = Array((counts,Map(dse -> 8635, TOTAL -> 1921625, dsu -> 0, dsr -> 0, ds -> 8635)))
+sc.textFile(f"quality/logs/${DATE_TIME}/impressions/*").
+    map(line => ("counts",scoreCountsMapGenerator(line))).
+    reduceByKey(mapCountingReducer(_,_)).
+    saveAsTextFile(f"RES-88/${DATE_TIME}/DEV")
