@@ -2,3 +2,5 @@
 target/
 .tox/
 *.egg-info/
+.pig_history
+*.pyc
