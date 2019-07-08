@@ -15,7 +15,8 @@ import org.json4s.jackson.JsonMethods._
 
 sc.setLogLevel("ERROR")
 
-val INPUT = "jira/SAD-5865/hourly/2019/05/*/*/*"
+//val INPUT = "jira/SAD-5865/hourly/2019/05/*/*/*"
+val INPUT = "jira/SAD-5865/SAD-5865-hourly.json"
 
 def toValueMap(line: String) : scala.collection.mutable.Map[String, BigInt] = {
   val jsonObject = parse(line).
