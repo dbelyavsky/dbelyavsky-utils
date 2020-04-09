@@ -364,8 +364,8 @@ then
             echo "    [${flagFileName}]"
 
             flagFileText=""
-            flagFileText+="--inputdir=/user/$SOURCE_USER/event/${dateTimeMinusOneHourPath}"
-            flagFileText+=",/user/$SOURCE_USER/event/${dateTimePath}"
+            flagFileText+="--inputdir=/user/$SOURCE_USER/merged/${dateTimeMinusOneHourPath}"
+            flagFileText+=",/user/$SOURCE_USER/merged/${dateTimePath}"
             flagFileText+=",/user/$SOURCE_USER/dt/raw/${dateTimeMinusOneHourPath}"
             flagFileText+=",/user/$SOURCE_USER/dt/raw/${dateTimePath}"
             flagFileText+=",/user/$SOURCE_USER/dt/raw/${dateTimePlusOneHourPath}"
